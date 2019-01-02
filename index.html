@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+
+<head>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #mynetwork {
+            width: 800px;
+            height: 600px;
+            border: 1px solid lightgray;
+        }
+    </style>
+
+
+    <script type="text/javascript" src="dist/vis.min.js"></script>
+    <script type="text/javascript" src="nodes.js"></script>
+    <script type="text/javascript" src="edges.js"></script>
+    <script src="stage_two.js"></script>
+    <link href="dist/vis.min.css" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+    
+    <div id="mynetwork"></div>
+    
+    <script>
+
+        function transformEdges(edgesIn) {
+            edgesOut = []
+            for (let e of edgesIn) {
+                edgesOut.push([e.from.toString(), e.to.toString()])
+            }
+            return edgesOut
+        }
+
+        function drawGraph(nodesArray, edgesarray) {
+        
+            var nodes = new vis.DataSet(nodesArray);
+            var edges = new vis.DataSet(edgesArray);
+
+            var container = document.getElementById('mynetwork');
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+            var options = {
+                physics: {
+                    enabled: true
+                }
+            };
+            var network = new vis.Network(container, data, options);
+
+        }
+
+        const WIDTH = 1600
+        const HEIGHT = 1200
+        const ITERATIONS = 100
+
+        Module.addOnPostRun(() => {
+
+            let edgesToWasm = transformEdges(edgesArray)
+
+            let startTime = new Date()
+            console.log("start..", startTime.toISOString())
+
+            let resultString = Module.calculateGraph(JSON.stringify(edgesToWasm), WIDTH, HEIGHT, ITERATIONS)
+
+            let result = JSON.parse(resultString)
+
+            let finishTime = new Date()
+
+            console.log(`Time: ${finishTime - startTime} ms`)
+
+            for (let n of nodesArray) {
+                n.x = result[n.id].x
+                n.y = result[n.id].y
+            }
+
+            drawGraph(nodesArray, edgesArray)
+            console.log(result)
+        });
+    </script>
+</body>
+
+</html>
